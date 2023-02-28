@@ -1,20 +1,20 @@
 .fc .fc-toolbar.fc-header-toolbar {
-  margin-bottom: 0;
+  margin-bottom: 10px;
 }
 .fc .fc-toolbar-title {
-  font-size: 1rem;
-  color: #37362f;
+  font-size: 1.2rem;
+  color: #000;
 }
 .fc .fc-button-primary {
   font-size: 0.75rem;
   background-color: #ffffff00;
-  color: #acaba9;
+  color: #000;
   border: none;
   outline: none;
 }
 .fc .fc-today-button {
   background-color: #ffffff00;
-  color: #37362f;
+  color: #000;
   border: none;
   outline: none;
 }
@@ -36,8 +36,8 @@
 .fc .fc-col-header-cell {
   font-size: 0.75rem;
   font-weight: normal;
-  color: #b6b5b3;
-  border: none;
+  color: #000;
+  border: 1px solid var(--fc-border-color)
 }
 .fc .fc-scrollgrid {
   border-width: 0;
@@ -50,4 +50,9 @@
 }
 .fc .fc-daygrid-day.fc-day-today {
   background-color: #ffffff00;
+}
+.fc .fc-view-harness {
+  flex-grow: 1;
+  position: relative;
+  border: 1px solid var(--fc-border-color)
 }

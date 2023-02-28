@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import styled from '@emotion/styled'
 import Board from "./Board";
 import FullCalendar from '@fullcalendar/react'
@@ -7,8 +8,12 @@ import jaLocale from '@fullcalendar/core/locales/ja'
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
 import { fetchMonthTasks } from '../utils/connection';
-import '../calendar.css';
 import { format } from 'date-fns';
+import { RootState } from '../redux/store';
+import { getMonthTasks } from '../redux/MonthTasks/selector';
+import '../calendar.css';
+import { setDate } from '../redux/DayTasks/slice';
+import { assignTasks, setMonth } from '../redux/MonthTasks/slice';
 
 const CircleNumber = styled.div`
   display: inline-flex;
@@ -37,32 +42,34 @@ const renderDayCell = (e: DayCellContentArg) => {
 }
 
 const CalendarBoard = () => {
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const monthTasks = useSelector((state: RootState) => getMonthTasks(state));
+  const dispatch = useDispatch();
 
   useEffect(() => {
     (async () => {
-      const monthTasks = await fetchMonthTasks(new Date());
-      if (monthTasks) {
-        setTasks(monthTasks);
+      const tasks = await fetchMonthTasks(monthTasks.month);
+      if (tasks) {
+        dispatch(assignTasks(tasks));
       }
     })();
-  }, [currentMonth]);
+  }, [dispatch, monthTasks.month]);
 
-  // const handleDateChanges = (arg: DatesSetArg) => {
-  //   let month = arg.start;
-  //   if (month.getMonth() + 1 !== arg.end.getMonth()) {
-  //     month.setMonth(month.getMonth() + 1);
-  //   }
-    
-  //   if (month.getMonth() !== currentMonth.getMonth()) {
-  //     setCurrentMonth(month);
-  //   }
-  // };
+  const handleDateChanges = (arg: DatesSetArg) => {
+    const startDate = new Date(arg.start.getFullYear(), arg.start.getMonth());
+    const endDate = new Date(arg.end.getFullYear(), arg.end.getMonth());
+    let displayedDate = startDate;
+    if (startDate.getMonth() + 1 !== endDate.getMonth()) {
+      displayedDate.setMonth(displayedDate.getMonth() + 1);
+    }
+    let monthStr = format(displayedDate, 'yyyy-MM-dd');
+    if (monthStr !== monthTasks.month) {
+      dispatch(setMonth(monthStr));
+    }
+  };
 
   const handleDateClick = useCallback((arg: DateClickArg) => {
-    alert(arg.dateStr);
-  }, []);
+    dispatch(setDate(format(new Date(arg.dateStr), 'yyyy-MM-dd')));
+  }, [dispatch]);
 
   return (
     <Board title="SCHEDULE">
@@ -78,8 +85,8 @@ const CalendarBoard = () => {
         eventBackgroundColor={'#FFFFFF'}
         eventBorderColor={'#acaba9'}
         eventTextColor={'#37362f'}
-        events={tasks.map((task: Task) => { return {title: task.title, date: task.date }})}
-        // datesSet={handleDateChanges}
+        events={monthTasks.tasks}
+        datesSet={handleDateChanges}
         dateClick={handleDateClick}
       />
     </Board>

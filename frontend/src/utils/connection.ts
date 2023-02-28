@@ -5,13 +5,13 @@ const getDateString = (date: Date) => {
   return format(date, 'yyyy-MM-dd');
 }
 
-export const createTask = async (title: string): Promise<Task | null> => {
+export const createTask = async (title: string, date: string): Promise<Task | null> => {
   const task = await fetcher<Task>(`http://localhost:8000/api/tasks/`, {
     method: 'post',
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({title})
+    body: JSON.stringify({title, date})
   }).catch((err) => {
     console.log(err);
     return null;
@@ -19,14 +19,15 @@ export const createTask = async (title: string): Promise<Task | null> => {
   return task;
 }
 
-export const fetchDayTasks = async (date: Date): Promise<Task[] | null> => {
-  const query = `date=${getDateString(date)}`;
+export const fetchDayTasks = async (date: string): Promise<Task[] | null> => {
+  const query = `date=${date}`;
   return await fetchTasks(query); 
 }
 
-export const fetchMonthTasks = async (date: Date): Promise<Task[] | null> => {
-  const start = new Date(date.getFullYear(), date.getMonth(), 1);
-  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+export const fetchMonthTasks = async (date: string): Promise<Task[] | null> => {
+  const tmp = new Date(date);
+  const start = new Date(tmp.getFullYear(), tmp.getMonth() -2, 1);
+  const end = new Date(tmp.getFullYear(), tmp.getMonth() + 3, 0);
   const query = `start=${getDateString(start)}&end=${getDateString(end)}`;
   return await fetchTasks(query);
 }
@@ -51,6 +52,17 @@ export const updateTask = async (task: Task) => {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(task)
+  }).catch((err) => {
+    console.log(err);
+  });
+}
+
+export const deleteTask = async (id: string) => {
+  await fetcher<void>(`http://localhost:8000/api/tasks/${id}`, {
+    method: 'delete',
+    headers: {
+      "Content-Type": "application/json"
+    }
   }).catch((err) => {
     console.log(err);
   });

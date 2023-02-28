@@ -20,7 +20,7 @@ const getTaskData = (result) => {
 
 router.get('', async (req, res) => {
   const {date, start, end} = req.query;
-  const filter = date ? {
+  const filter = date !== undefined ? {
     property: "Date",
     date: {
       "equals": date
@@ -29,12 +29,12 @@ router.get('', async (req, res) => {
     and :[{
       property: "Date",
       date: {
-        "after": start,
+        "on_or_after": start,
       }
     }, {
       property: "Date",
       date: {
-        "before": end,
+        "on_or_before": end,
       }
     }]
   };
@@ -51,7 +51,7 @@ router.get('', async (req, res) => {
 });
 
 router.post('', async (req, res) => {
-  const {title} = req.body;
+  const {title, date} = req.body;
   try {
     const response = await notion.pages.create({
       parent: {
@@ -72,7 +72,7 @@ router.post('', async (req, res) => {
         },
         Date: {
           date: {
-            start: getDateString(new Date())
+            start: date
           }
         }
       }
@@ -87,7 +87,7 @@ router.post('', async (req, res) => {
 router.put('/:task_id', async (req, res) => {
   const {title, done} = req.body;
   try {
-    const {results} = await notion.pages.update({
+    await notion.pages.update({
       page_id: req.params.task_id,
       properties: {
         Task: {
@@ -110,6 +110,16 @@ router.put('/:task_id', async (req, res) => {
   }
 });
 
-// router.delete();
+router.delete('/:task_id', async (req, res) => {
+  try {
+    const {results} = await notion.pages.update({
+      page_id: req.params.task_id,
+      archived: true
+    });
+    res.status(200).json({message: 'success'});
+  } catch(error) {
+    res.status(error.status).json(error.body);
+  }
+});
 
 module.exports = router;
